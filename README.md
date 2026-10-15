@@ -9,8 +9,8 @@ Your Instagram helper: plan posts, follow shot lists, give every photo the same 
 | **Plan** | Plan Reels, photos, carousels and stories with a date, time and caption. Tracks your weekly goal (4 posts) and reminds you when it's time to post. Tap a post to copy its caption. |
 | **Shoot** | Shot lists for restaurant outings, celebrations and day-in-my-life videos. Tick clips off while you film. |
 | **Edit** | Pick up to 20 photos, choose a subtle look (Natural, Warm, Food pop, Clean, Film, Moody), set the strength and apply it to all of them at once. Saves to a "PostPal" album and can share straight to Instagram. Hold a photo to compare with the original. |
-| **Write** | Fill-in-the-blank caption templates (restaurant review, "worth it?", graduation, day in my life, weekend recap) plus hashtag sets. Copy it or add it straight to your plan. |
-| **Remind** | Weekly content-session reminder, a weekend filming nudge, and time-to-post alerts. All run on the phone, even with the app closed. |
+| **Write** | **Draft with AI**: type quick notes and get 3 caption drafts in your voice (Google Gemini or Anthropic Claude, using your own API key). Plus fill-in-the-blank caption templates (restaurant review, "worth it?", graduation, day in my life, weekend recap) plus hashtag sets. Copy it or add it straight to your plan. |
+| **Remind** | Weekly content-session reminder, a weekend filming nudge, and time-to-post alerts. They ring like an alarm (loud, repeating until you tap or swipe, works on silent), or switch to a normal notification sound. All run on the phone, even with the app closed. |
 
 Videos: PostPal plans and reminds; the actual Reel editing happens in CapCut using one template you reuse (steps are in the Edit tab).
 
@@ -40,6 +40,12 @@ flutter build apk --release
 ```
 
 The APK lands in `build/app/outputs/flutter-apk/app-release.apk`. To try it on a plugged-in phone: `flutter run`.
+
+## AI setup
+
+1. Get a key: Google Gemini (free tier) at aistudio.google.com, or Anthropic Claude (paid) at console.anthropic.com.
+2. In the app: **Write → Draft with AI → ⚙**, pick the service and paste the key.
+3. Paste 2–3 captions you wrote yourself into "Your voice" so the drafts sound like you.
 
 ## Notes
 

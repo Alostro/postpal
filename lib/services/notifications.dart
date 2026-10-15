@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
@@ -16,7 +18,34 @@ class Notifications {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  static const NotificationDetails _details = NotificationDetails(
+  AndroidFlutterLocalNotificationsPlugin? get _android =>
+      _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+
+  /// Rings like an alarm clock: alarm volume (works on silent), keeps
+  /// ringing until you tap or swipe it, and lights up the screen.
+  static final NotificationDetails _alarm = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'postpal_alarm',
+      'Alarm reminders',
+      channelDescription: 'Loud reminders that ring until you respond',
+      importance: Importance.max,
+      priority: Priority.max,
+      category: AndroidNotificationCategory.alarm,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+      sound: const UriAndroidNotificationSound('content://settings/system/alarm_alert'),
+      playSound: true,
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 800, 400, 800, 400, 800]),
+      fullScreenIntent: true,
+      visibility: NotificationVisibility.public,
+      // FLAG_INSISTENT: repeat the sound until the notification is handled.
+      additionalFlags: Int32List.fromList(<int>[4]),
+    ),
+  );
+
+  /// A normal, single notification sound.
+  static const NotificationDetails _gentle = NotificationDetails(
     android: AndroidNotificationDetails(
       'postpal_reminders',
       'Reminders',
@@ -26,6 +55,9 @@ class Notifications {
     ),
   );
 
+  NotificationDetails get _details =>
+      Store.instance.alarmSound ? _alarm : _gentle;
+
   Future<void> init() async {
     tzdata.initializeTimeZones();
     const settings = InitializationSettings(
@@ -34,10 +66,28 @@ class Notifications {
     await _plugin.initialize(settings);
   }
 
+  /// Asks for notification permission and, where Android needs it,
+  /// permission to ring at an exact time.
   Future<bool> requestPermission() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    return await android?.requestNotificationsPermission() ?? true;
+    final android = _android;
+    if (android == null) return true;
+    final allowed = await android.requestNotificationsPermission() ?? true;
+    try {
+      if (await android.canScheduleExactNotifications() == false) {
+        await android.requestExactAlarmsPermission();
+      }
+    } catch (_) {}
+    return allowed;
+  }
+
+  /// Exact alarm-clock timing when allowed, otherwise Android's best effort.
+  Future<AndroidScheduleMode> _mode() async {
+    try {
+      if (await _android?.canScheduleExactNotifications() ?? false) {
+        return AndroidScheduleMode.alarmClock;
+      }
+    } catch (_) {}
+    return AndroidScheduleMode.inexactAllowWhileIdle;
   }
 
   /// Next time it is [weekday] at [hour]:[minute] on the phone's clock.
@@ -61,7 +111,7 @@ class Notifications {
       body,
       _nextWeekly(weekday, hour, minute),
       _details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: await _mode(),
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );
   }
@@ -105,8 +155,17 @@ class Notifications {
       'Your caption is ready in PostPal. Tap Copy, then share.',
       tz.TZDateTime.from(post.when, tz.UTC),
       _details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: await _mode(),
     );
+  }
+
+  /// Re-schedules everything, e.g. after switching between alarm and gentle sound.
+  Future<void> rescheduleAll() async {
+    final store = Store.instance;
+    await applyReminderSettings(store.reminders);
+    for (final p in store.posts) {
+      await schedulePost(p, enabled: store.reminders.postAlertsOn);
+    }
   }
 
   Future<void> cancelPost(int id) => _plugin.cancel(postId(id));
@@ -114,7 +173,9 @@ class Notifications {
   Future<void> showTest() => _plugin.show(
         99,
         'PostPal reminders are on ✅',
-        'This is what your reminders will look like.',
+        Store.instance.alarmSound
+            ? 'This is your alarm. Tap or swipe it to stop the ringing.'
+            : 'This is what your reminders will look like.',
         _details,
       );
 }

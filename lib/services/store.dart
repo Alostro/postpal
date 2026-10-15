@@ -92,6 +92,15 @@ class Store extends ChangeNotifier {
   double myLookStrength = 0.7;
   int _nextId = 1;
 
+  // Reminders ring like an alarm (loud, repeating) unless turned off.
+  bool alarmSound = true;
+
+  // AI caption writer (the user's own API key, stored only on this phone).
+  String aiProvider = 'gemini';
+  String aiKey = '';
+  String aiModel = '';
+  String voiceSamples = '';
+
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
     try {
@@ -116,6 +125,34 @@ class Store extends ChangeNotifier {
     myLook = _prefs.getString('myLook') ?? 'Natural';
     myLookStrength = _prefs.getDouble('myLookStrength') ?? 0.7;
     _nextId = _prefs.getInt('nextId') ?? 1;
+    alarmSound = _prefs.getBool('alarmSound') ?? true;
+    aiProvider = _prefs.getString('aiProvider') ?? 'gemini';
+    aiKey = _prefs.getString('aiKey') ?? '';
+    aiModel = _prefs.getString('aiModel') ?? '';
+    voiceSamples = _prefs.getString('voiceSamples') ?? '';
+  }
+
+  Future<void> setAlarmSound(bool on) async {
+    alarmSound = on;
+    await _prefs.setBool('alarmSound', on);
+    notifyListeners();
+  }
+
+  Future<void> saveAiSettings({
+    required String provider,
+    required String key,
+    required String model,
+    required String voice,
+  }) async {
+    aiProvider = provider;
+    aiKey = key.trim();
+    aiModel = model.trim();
+    voiceSamples = voice;
+    await _prefs.setString('aiProvider', aiProvider);
+    await _prefs.setString('aiKey', aiKey);
+    await _prefs.setString('aiModel', aiModel);
+    await _prefs.setString('voiceSamples', voiceSamples);
+    notifyListeners();
   }
 
   int newId() {

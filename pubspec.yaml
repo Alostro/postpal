@@ -1,7 +1,7 @@
 name: postpal
 description: PostPal - plan, shoot, edit and post on Instagram with natural, human-looking content.
 publish_to: 'none'
-version: 1.0.1+2
+version: 1.1.0+3
 
 environment:
   sdk: ^3.5.0
@@ -17,6 +17,7 @@ dependencies:
   path_provider: ^2.1.5
   share_plus: ^11.1.0
   gal: ^2.3.1
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

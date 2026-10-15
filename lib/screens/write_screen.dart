@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'ai_caption_card.dart';
 import 'plan_screen.dart';
 
 /// Fill-in-the-blank caption templates. {field} becomes a text box.
@@ -122,8 +123,12 @@ class _WriteScreenState extends State<WriteScreen> {
       children: [
         Text('Captions', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 4),
-        const Text('Fill in the blanks in your own words. No robot captions.'),
+        const Text('Let AI draft from your notes, or fill in a template yourself.'),
         const SizedBox(height: 12),
+        AiCaptionCard(onAddedToPlan: widget.onAddedToPlan),
+        const SizedBox(height: 20),
+        Text('Templates', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,

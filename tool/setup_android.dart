@@ -20,13 +20,30 @@ void _patchManifest() {
 
   xml = xml.replaceFirst(RegExp(r'android:label="[^"]*"'), 'android:label="PostPal"');
 
-  const permissions = '''
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
-''';
-  if (!xml.contains('POST_NOTIFICATIONS')) {
-    xml = xml.replaceFirst('<application', '$permissions    <application');
+  const permissions = <String>[
+    'android.permission.INTERNET" />',
+    'android.permission.POST_NOTIFICATIONS" />',
+    'android.permission.RECEIVE_BOOT_COMPLETED" />',
+    'android.permission.VIBRATE" />',
+    'android.permission.WAKE_LOCK" />',
+    'android.permission.USE_FULL_SCREEN_INTENT" />',
+    // Lets reminders ring at the exact minute, like an alarm clock.
+    'android.permission.USE_EXACT_ALARM" />',
+    'android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />',
+    'android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />',
+  ];
+  for (final perm in permissions) {
+    final name = perm.substring(0, perm.indexOf('"'));
+    if (!xml.contains('"$name"')) {
+      xml = xml.replaceFirst(
+          '<application', '<uses-permission android:name="$perm\n    <application');
+    }
+  }
+
+  // Alarm reminders can light up the screen and show over the lock screen.
+  if (!xml.contains('android:showWhenLocked')) {
+    xml = xml.replaceFirst('<activity',
+        '<activity\n            android:showWhenLocked="true"\n            android:turnScreenOn="true"');
   }
 
   const receivers = '''

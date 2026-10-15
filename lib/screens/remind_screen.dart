@@ -130,6 +130,20 @@ class _RemindScreenState extends State<RemindScreen> {
             },
           ),
         ),
+        Card(
+          child: SwitchListTile(
+            secondary: const Icon(Icons.alarm),
+            title: const Text('Ring like an alarm'),
+            subtitle: Text(store.alarmSound
+                ? 'Loud alarm sound that keeps ringing until you tap or swipe it. Works on silent.'
+                : 'Off: reminders use your normal notification sound once.'),
+            value: store.alarmSound,
+            onChanged: (v) async {
+              await store.setAlarmSound(v);
+              await _apply(); // re-schedules everything with the new sound
+            },
+          ),
+        ),
         const SizedBox(height: 12),
         OutlinedButton.icon(
           onPressed: () async {
